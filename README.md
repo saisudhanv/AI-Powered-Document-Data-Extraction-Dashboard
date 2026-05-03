@@ -118,11 +118,11 @@ Open **http://localhost:3000** in your browser.
 
 | Criteria | Gemini 2.5 Flash | OpenAI GPT-4o | Tesseract OCR |
 |----------|-----------------|---------------|---------------|
-| Native Vision | ✅ Direct image | ✅ Direct image | ❌ Text only |
-| Structured Output | ✅ Pydantic schema | ✅ JSON mode | ❌ Raw text |
+| Native Vision | Direct image(Yes) | Direct image(Yes) | Text only(No) |
+| Structured Output | Pydantic schema(Yes) | JSON mode(Yes) | Raw text(No) |
 | Cost (per 1M tokens) | ~$0.15 input | ~$2.50 input | Free |
-| Generic Doc Handling | ✅ Prompt-driven | ✅ Prompt-driven | ❌ Needs rules |
-| Free Tier | ✅ Generous | ❌ Paid only | ✅ Free |
+| Generic Doc Handling | Prompt-driven(Yes) | Prompt-driven(Yes) | Needs rules(No) |
+| Free Tier | Generous(Yes) | Paid only(No) | Free(Yes) |
 
 ### How It Works
 
