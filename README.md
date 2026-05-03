@@ -9,20 +9,20 @@ A full-stack application that uses **Google Gemini 2.5 Flash** to automatically 
 
 | Feature | Description |
 |---------|-------------|
-| 📤 **Multi-File Upload** | Drag & drop or browse — upload multiple images/PDFs at once |
-| 🤖 **AI-Based Extraction** | Google Gemini 2.5 Flash extracts structured data from any official document |
-| 🏷️ **Auto Document Detection** | AI identifies document type automatically (Aadhaar, PAN, Passport, etc.) |
-| 📊 **Confidence Scores** | Per-field confidence indicators (color-coded bars) |
-| ✏️ **Editable Fields** | Inline editing of extracted data |
-| 🔄 **Retry Mechanism** | One-click retry for failed extractions with exponential backoff |
-| 📡 **Real-Time Updates** | Server-Sent Events (SSE) for live processing status |
-| 📈 **Performance Tracking** | Dashboard stats — avg processing time, success rate |
-| 🃏 **Dual View** | Card view and table view for extracted data |
-| 🌙 **Premium Dark UI** | Glassmorphism design with micro-animations |
+| **Multi-File Upload** | Drag & drop or browse — upload multiple images/PDFs at once |
+| **AI-Based Extraction** | Google Gemini 2.5 Flash extracts structured data from any official document |
+| **Auto Document Detection** | AI identifies document type automatically (Aadhaar, PAN, Passport, etc.) |
+| **Confidence Scores** | Per-field confidence indicators (color-coded bars) |
+| **Editable Fields** | Inline editing of extracted data |
+| **Retry Mechanism** | One-click retry for failed extractions with exponential backoff |
+| **Real-Time Updates** | Server-Sent Events (SSE) for live processing status |
+| **Performance Tracking** | Dashboard stats — avg processing time, success rate |
+| **Dual View** | Card view and table view for extracted data |
+| **Premium Dark UI** | Glassmorphism design with micro-animations |
 
 ---
 
-## 🚀 Setup Steps
+## Setup Steps
 
 ### Prerequisites
 - **Node.js** 18+ and npm
@@ -72,7 +72,7 @@ Open **http://localhost:3000** in your browser.
 
 ---
 
-## 🏗️ Architecture Overview
+## Architecture Overview
 
 ```
 ┌─────────────────────────────────────────────────────────┐
@@ -112,7 +112,7 @@ Open **http://localhost:3000** in your browser.
 
 ---
 
-## 🤖 AI Approach
+## AI Approach
 
 ### Why Google Gemini 2.5 Flash?
 
@@ -141,7 +141,7 @@ Open **http://localhost:3000** in your browser.
 
 ---
 
-## ⚡ Scaling Strategy
+## Scaling Strategy
 
 ### Current Design (Assignment Scope)
 - **5 concurrent** Gemini API calls via `asyncio.Semaphore`
@@ -165,7 +165,7 @@ Open **http://localhost:3000** in your browser.
 
 ---
 
-## 💰 Cost Estimation
+## Cost Estimation
 
 ### Gemini 2.5 Flash Pricing
 
@@ -204,7 +204,7 @@ Open **http://localhost:3000** in your browser.
 ---
 
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 Assignment/
@@ -240,7 +240,7 @@ Assignment/
 
 ---
 
-## 🧪 API Endpoints
+## API Endpoints
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
