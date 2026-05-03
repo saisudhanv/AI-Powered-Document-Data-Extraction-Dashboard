@@ -1,11 +1,11 @@
-# 🔍 DocExtract AI — AI-Powered Document Data Extraction Dashboard
+# DocExtract AI — AI-Powered Document Data Extraction Dashboard
 
 A full-stack application that uses **Google Gemini 2.5 Flash** to automatically extract structured data from official documents (Aadhaar Card, PAN Card, Passport, etc.). Upload documents, get instant AI-powered extraction with confidence scores, and manage results through a premium dashboard interface.
 
 
 ---
 
-## ✨ Features
+## Features
 
 | Feature | Description |
 |---------|-------------|
