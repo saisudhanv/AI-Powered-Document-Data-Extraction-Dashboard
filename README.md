@@ -32,7 +32,7 @@ A full-stack application that uses **Google Gemini 2.5 Flash** to automatically 
 
 ### 1. Clone the Repository
 ```bash
-git clone <repo-url>
+git clone "https://github.com/saisudhanv/AI-Powered-Document-Data-Extraction-Dashboard.git"
 cd Assignment
 ```
 
