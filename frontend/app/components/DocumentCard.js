@@ -139,6 +139,7 @@ export default function DocumentCard({ doc, onUpdate, onDelete }) {
               </div>
             ))}
           </div>
+          
 
           {editing && (
             <div className="edit-actions">

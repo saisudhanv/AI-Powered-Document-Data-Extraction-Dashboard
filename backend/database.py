@@ -139,7 +139,8 @@ async def get_stats() -> dict:
         "pending": pending,
         "processing": processing,
         "average_processing_time_ms": round(avg_time, 1) if avg_time else None,
-        "success_rate": round(success_rate, 1) if success_rate else None,
+        "success_rate": round(success_rate, 1) if
+         success_rate else None,
     }
 
 
