@@ -22,7 +22,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
 
-from fastapi import FastAPI, File, UploadFile, HTTPException, BackgroundTasks
+from fastapi import FastAPI, File, UploadFile, HTTPException, BackgroundTasks, Depends, Header, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 
@@ -60,8 +60,8 @@ app.add_middleware(
 # Semaphore to limit concurrent Gemini API calls
 extraction_semaphore = asyncio.Semaphore(config.MAX_CONCURRENT_EXTRACTIONS)
 
-# SSE subscribers for real-time updates
-sse_subscribers: list[asyncio.Queue] = []
+# SSE subscribers for real-time updates (queue, user_id)
+sse_subscribers: list[tuple[asyncio.Queue, str]] = []
 
 
 @app.on_event("startup")
@@ -71,20 +71,40 @@ async def startup():
 
 
 # ---------------------------------------------------------------------------
+# User Authentication / Dependency
+# ---------------------------------------------------------------------------
+
+async def get_user_id(
+    x_user_id: Optional[str] = Header(None, alias="X-User-ID"),
+    user_id: Optional[str] = Query(None)
+) -> str:
+    """Extract and validate the user ID from headers or query parameters."""
+    uid = x_user_id or user_id
+    if not uid:
+        raise HTTPException(status_code=400, detail="X-User-ID header or user_id query parameter is required")
+    return uid
+
+
+# ---------------------------------------------------------------------------
 # SSE Helpers
 # ---------------------------------------------------------------------------
 
 async def broadcast_update(doc: DocumentRecord) -> None:
-    """Send a status update to all SSE subscribers."""
+    """Send a status update to all SSE subscribers of this user."""
+    user_id = doc.user_id
+    if not user_id:
+        return
     data = doc.model_dump_json()
     dead_queues = []
-    for q in sse_subscribers:
-        try:
-            q.put_nowait(data)
-        except asyncio.QueueFull:
-            dead_queues.append(q)
-    for q in dead_queues:
-        sse_subscribers.remove(q)
+    for q, sub_user_id in sse_subscribers:
+        if sub_user_id == user_id:
+            try:
+                q.put_nowait(data)
+            except asyncio.QueueFull:
+                dead_queues.append((q, sub_user_id))
+    for item in dead_queues:
+        if item in sse_subscribers:
+            sse_subscribers.remove(item)
 
 
 # ---------------------------------------------------------------------------
@@ -147,7 +167,10 @@ async def process_document(doc_id: str, file_path: Path, filename: str) -> None:
 # ---------------------------------------------------------------------------
 
 @app.post("/api/upload", response_model=UploadResponse)
-async def upload_documents(files: list[UploadFile] = File(...)):
+async def upload_documents(
+    files: list[UploadFile] = File(...),
+    user_id: str = Depends(get_user_id)
+):
     """
     Upload one or more documents for AI extraction.
     Supports images (PNG, JPG, JPEG, WebP, BMP, TIFF) and PDFs.
@@ -176,7 +199,7 @@ async def upload_documents(files: list[UploadFile] = File(...)):
         file_path.write_bytes(content)
 
         # Create database record
-        doc = await db.create_document(doc_id, file.filename or "unknown", timestamp)
+        doc = await db.create_document(doc_id, file.filename or "unknown", timestamp, user_id)
         documents.append(doc)
         tasks.append((doc_id, file_path, file.filename or "unknown"))
 
@@ -191,25 +214,25 @@ async def upload_documents(files: list[UploadFile] = File(...)):
 
 
 @app.get("/api/documents", response_model=list[DocumentRecord])
-async def list_documents():
+async def list_documents(user_id: str = Depends(get_user_id)):
     """List all uploaded documents with their extraction status and results."""
-    return await db.get_all_documents()
+    return await db.get_all_documents(user_id)
 
 
 @app.get("/api/documents/{doc_id}", response_model=DocumentRecord)
-async def get_document(doc_id: str):
+async def get_document(doc_id: str, user_id: str = Depends(get_user_id)):
     """Get details of a specific document."""
     doc = await db.get_document(doc_id)
-    if not doc:
+    if not doc or doc.user_id != user_id:
         raise HTTPException(status_code=404, detail="Document not found")
     return doc
 
 
 @app.put("/api/documents/{doc_id}", response_model=DocumentRecord)
-async def update_document(doc_id: str, body: UpdateFieldsRequest):
+async def update_document(doc_id: str, body: UpdateFieldsRequest, user_id: str = Depends(get_user_id)):
     """Update extracted fields for a document (edit feature)."""
     doc = await db.get_document(doc_id)
-    if not doc:
+    if not doc or doc.user_id != user_id:
         raise HTTPException(status_code=404, detail="Document not found")
     if not doc.extraction:
         raise HTTPException(status_code=400, detail="Document has no extraction data to edit")
@@ -224,10 +247,10 @@ async def update_document(doc_id: str, body: UpdateFieldsRequest):
 
 
 @app.post("/api/documents/{doc_id}/retry", response_model=DocumentRecord)
-async def retry_extraction(doc_id: str):
+async def retry_extraction(doc_id: str, user_id: str = Depends(get_user_id)):
     """Retry extraction for a failed document."""
     doc = await db.get_document(doc_id)
-    if not doc:
+    if not doc or doc.user_id != user_id:
         raise HTTPException(status_code=404, detail="Document not found")
     if doc.status not in ("failed",):
         raise HTTPException(status_code=400, detail="Can only retry failed documents")
@@ -250,9 +273,9 @@ async def retry_extraction(doc_id: str):
 
 
 @app.delete("/api/documents/{doc_id}")
-async def delete_document(doc_id: str):
+async def delete_document(doc_id: str, user_id: str = Depends(get_user_id)):
     """Delete a document and its file."""
-    deleted = await db.delete_document(doc_id)
+    deleted = await db.delete_document(doc_id, user_id)
     if not deleted:
         raise HTTPException(status_code=404, detail="Document not found")
 
@@ -264,20 +287,20 @@ async def delete_document(doc_id: str):
 
 
 @app.get("/api/stats", response_model=StatsResponse)
-async def get_stats():
+async def get_stats(user_id: str = Depends(get_user_id)):
     """Get processing statistics and performance metrics."""
-    stats = await db.get_stats()
+    stats = await db.get_stats(user_id)
     return StatsResponse(**stats)
 
 
 @app.get("/api/status")
-async def status_stream():
+async def status_stream(user_id: str = Depends(get_user_id)):
     """
     Server-Sent Events stream for real-time processing updates.
     Clients receive document status changes as they happen.
     """
     queue: asyncio.Queue = asyncio.Queue(maxsize=100)
-    sse_subscribers.append(queue)
+    sse_subscribers.append((queue, user_id))
 
     async def event_generator():
         try:
@@ -293,8 +316,10 @@ async def status_stream():
         except asyncio.CancelledError:
             pass
         finally:
-            if queue in sse_subscribers:
-                sse_subscribers.remove(queue)
+            # Clean up subscriber
+            for item in list(sse_subscribers):
+                if item[0] is queue:
+                    sse_subscribers.remove(item)
 
     return StreamingResponse(
         event_generator(),

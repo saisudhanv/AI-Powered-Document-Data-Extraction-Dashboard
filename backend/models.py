@@ -48,6 +48,7 @@ class DocumentRecord(BaseModel):
     extraction: Optional[DocumentExtraction] = None
     error: Optional[str] = None
     processing_time_ms: Optional[int] = None
+    user_id: Optional[str] = None
 
 
 class UploadResponse(BaseModel):

@@ -17,31 +17,52 @@ export default function Home() {
   const [stats, setStats] = useState(defaultStats);
   const [uploading, setUploading] = useState(false);
   const [view, setView] = useState("cards"); // "cards" | "table"
+  const [userId, setUserId] = useState(null);
   const sseRef = useRef(null);
+
+  // Initialize/Retrieve User ID from localStorage
+  useEffect(() => {
+    let id = localStorage.getItem("doc_extract_user_id");
+    if (!id) {
+      id = typeof crypto.randomUUID === "function"
+        ? crypto.randomUUID()
+        : Math.random().toString(36).substring(2) + Date.now().toString(36);
+      localStorage.setItem("doc_extract_user_id", id);
+    }
+    setUserId(id);
+  }, []);
 
   // Fetch all documents
   const fetchDocs = useCallback(async () => {
+    if (!userId) return;
     try {
-      const res = await fetch(`${API}/api/documents`);
+      const res = await fetch(`${API}/api/documents`, {
+        headers: { "X-User-ID": userId }
+      });
       if (res.ok) setDocuments(await res.json());
     } catch (e) { /* backend may not be running yet */ }
-  }, []);
+  }, [userId]);
 
   // Fetch stats
   const fetchStats = useCallback(async () => {
+    if (!userId) return;
     try {
-      const res = await fetch(`${API}/api/stats`);
+      const res = await fetch(`${API}/api/stats`, {
+        headers: { "X-User-ID": userId }
+      });
       if (res.ok) setStats(await res.json());
     } catch (e) { /* ignore */ }
-  }, []);
+  }, [userId]);
 
   // SSE connection for real-time updates
   useEffect(() => {
+    if (!userId) return;
+
     fetchDocs();
     fetchStats();
 
     const connectSSE = () => {
-      const es = new EventSource(`${API}/api/status`);
+      const es = new EventSource(`${API}/api/status?user_id=${userId}`);
       es.onmessage = (event) => {
         try {
           const data = JSON.parse(event.data);
@@ -68,15 +89,20 @@ export default function Home() {
 
     connectSSE();
     return () => sseRef.current?.close();
-  }, [fetchDocs, fetchStats]);
+  }, [userId, fetchDocs, fetchStats]);
 
   // Upload handler
   const handleUpload = async (files) => {
+    if (!userId) return;
     setUploading(true);
     try {
       const formData = new FormData();
       files.forEach((f) => formData.append("files", f));
-      const res = await fetch(`${API}/api/upload`, { method: "POST", body: formData });
+      const res = await fetch(`${API}/api/upload`, {
+        method: "POST",
+        headers: { "X-User-ID": userId },
+        body: formData,
+      });
       if (res.ok) {
         const data = await res.json();
         setDocuments((prev) => [...data.documents, ...prev]);
@@ -142,6 +168,7 @@ export default function Home() {
               <DocumentCard
                 key={doc.id}
                 doc={doc}
+                userId={userId}
                 onUpdate={handleDocUpdate}
                 onDelete={handleDocDelete}
               />

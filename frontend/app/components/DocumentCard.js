@@ -6,7 +6,7 @@ import ProgressBar from "./ProgressBar";
 
 const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
-export default function DocumentCard({ doc, onUpdate, onDelete }) {
+export default function DocumentCard({ doc, userId, onUpdate, onDelete }) {
   const [editing, setEditing] = useState(false);
   const [editFields, setEditFields] = useState([]);
   const [retrying, setRetrying] = useState(false);
@@ -21,7 +21,10 @@ export default function DocumentCard({ doc, onUpdate, onDelete }) {
     try {
       const res = await fetch(`${API}/api/documents/${doc.id}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "X-User-ID": userId,
+        },
         body: JSON.stringify({ fields: editFields }),
       });
       if (res.ok) {
@@ -37,7 +40,10 @@ export default function DocumentCard({ doc, onUpdate, onDelete }) {
   const handleRetry = async () => {
     setRetrying(true);
     try {
-      const res = await fetch(`${API}/api/documents/${doc.id}/retry`, { method: "POST" });
+      const res = await fetch(`${API}/api/documents/${doc.id}/retry`, {
+        method: "POST",
+        headers: { "X-User-ID": userId },
+      });
       if (res.ok) {
         const updated = await res.json();
         onUpdate(updated);
@@ -50,7 +56,10 @@ export default function DocumentCard({ doc, onUpdate, onDelete }) {
 
   const handleDelete = async () => {
     try {
-      const res = await fetch(`${API}/api/documents/${doc.id}`, { method: "DELETE" });
+      const res = await fetch(`${API}/api/documents/${doc.id}`, {
+        method: "DELETE",
+        headers: { "X-User-ID": userId },
+      });
       if (res.ok) onDelete(doc.id);
     } catch (err) {
       console.error("Delete failed", err);
