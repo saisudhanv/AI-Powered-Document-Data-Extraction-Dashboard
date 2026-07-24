@@ -16,7 +16,7 @@ A full-stack application that uses **Google Gemini 2.5 Flash** to automatically 
 | **Editable Fields** | Inline editing of extracted data |
 | **Retry Mechanism** | One-click retry for failed extractions with exponential backoff |
 | **Real-Time Updates** | Server-Sent Events (SSE) for live processing status |
-| **Performance Tracking** | Dashboard stats — avg processing time, success rate |
+| **Performance Tracking** | Dashboard stats - avg processing time, success rate |
 | **Dual View** | Card view and table view for extracted data |
 | **Premium Dark UI** | Glassmorphism design with micro-animations |
 
