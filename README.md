@@ -9,7 +9,7 @@ A full-stack application that uses **Google Gemini 2.5 Flash** to automatically 
 
 | Feature | Description |
 |---------|-------------|
-| **Multi-File Upload** | Drag & drop or browse — upload multiple images/PDFs at once |
+| **Multi-File Upload** | Drag & drop or browse - upload multiple images/PDFs at once |
 | **AI-Based Extraction** | Google Gemini 2.5 Flash extracts structured data from any official document |
 | **Auto Document Detection** | AI identifies document type automatically (Aadhaar, PAN, Passport, etc.) |
 | **Confidence Scores** | Per-field confidence indicators (color-coded bars) |
@@ -131,13 +131,13 @@ Open **http://localhost:3000** in your browser.
    - Identify document type dynamically (not hardcoded)
    - Extract ALL visible fields
    - Provide confidence scores (0.0–1.0) per field
-3. **Structured Output**: Pydantic schema enforces JSON structure — no regex parsing needed
+3. **Structured Output**: Pydantic schema enforces JSON structure - no regex parsing needed
 4. **Retry Logic**: 3 attempts with exponential backoff on failure
 
 ### Trade-offs
 - **Pros**: Extremely accurate, handles diverse layouts, no preprocessing needed, very cheap
 - **Cons**: Requires network access, API key needed, slight latency (~3-5s per doc)
-- **Alternative**: For offline use, combine Tesseract + local LLM — but accuracy drops significantly
+- **Alternative**: For offline use, combine Tesseract + local LLM - but accuracy drops significantly
 
 ---
 
@@ -157,11 +157,11 @@ Open **http://localhost:3000** in your browser.
 | Large | Kubernetes + auto-scaling + Batch API | 1000+ docs/min |
 
 **Key strategies:**
-1. **Celery + Redis** task queue for worker decoupling
-2. **Gemini Batch API** — 50% cost reduction for non-real-time jobs
-3. **Horizontal scaling** — add worker pods independently of API servers
-4. **Image preprocessing** — resize/compress to reduce token count
-5. **Deduplication** — hash-based caching to avoid re-processing identical docs
+1. **Celery + Redis** - task queue for worker decoupling
+2. **Gemini Batch API** - 50% cost reduction for non-real-time jobs
+3. **Horizontal scaling** - add worker pods independently of API servers
+4. **Image preprocessing** - resize/compress to reduce token count
+5. **Deduplication** - hash-based caching to avoid re-processing identical docs
 
 ---
 
@@ -199,7 +199,7 @@ Open **http://localhost:3000** in your browser.
 - **Model Selection**: Use `gemini-2.5-flash-lite` for simpler documents
 - **Image Optimization**: Resize to 1600px max dimension before sending
 
-> **Bottom line**: Processing 50 documents costs less than $0.02 — effectively free.
+> **Bottom line**: Processing 50 documents costs less than $0.02 - effectively free.
 
 ---
 
